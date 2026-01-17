@@ -7,58 +7,12 @@ import Header from './components/Header';
 import CategoryMenu from './components/CategoryMenu';
 import FilterBar from './components/FilterBar';
 import PromptCard from './components/PromptCard';
-import AdminModal from './components/AdminModal';
-import Toast from './components/Toast';
-import SettingsModal from './components/SettingsModal';
-import SearchBar from './components/SearchBar';
-import SortDropdown from './components/SortDropdown';
-
-// Mock data for when Supabase is not connected
-const MOCK_CATEGORIES = [
-  { id: '1', name: 'Psicologia' },
-  { id: '2', name: 'Marketing' },
-  { id: '3', name: 'Business' },
-  { id: '4', name: 'Copywriting' },
-  { id: '5', name: 'Coding' }
-];
-
-const MOCK_TYPES = [
-  { id: '1', name: 'Prompt parziale' },
-  { id: '2', name: 'Prompt template' },
-  { id: '3', name: 'System Prompt' }
-];
-
-const MOCK_PROMPTS = [
-  {
-    id: '1',
-    title: 'Generatore di Titoli YouTube',
-    content: 'Agisci come un esperto di YouTube. Genera 10 titoli clickbait ma onesti per un video su [ARGOMENTO]. I titoli devono essere sotto i 60 caratteri e includere parole chiave emotive.',
-    category: 'Marketing',
-    type: 'Prompt template',
-    created_at: new Date().toISOString(),
-    updated_at: null
-  },
-  {
-    id: '2',
-    title: 'Analisi Sentiment Recensioni',
-    content: 'Analizza le seguenti recensioni e categorizzale in Positive, Negative o Neutre. Per ogni categoria, estrai i temi ricorrenti.\n\nRecensioni:\n[INCOLLA RECENSIONI QUI]',
-    category: 'Business',
-    type: 'System Prompt',
-    created_at: new Date().toISOString(),
-    updated_at: null
-  },
-  {
-    id: '3',
-    title: 'Spiegazione Concetti Complessi',
-    content: 'Spiegami [CONCETTO] come se avessi 5 anni. Usa analogie semplici e vita quotidiana.',
-    category: 'Psicologia',
-    type: 'Prompt parziale',
-    created_at: new Date().toISOString(),
-    updated_at: null
-  }
-];
-
+import PromptDetail from './components/PromptDetail';
 function App() {
+  // Stato per dettaglio prompt mobile
+  const [detailPrompt, setDetailPrompt] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem('bob_authenticated') === 'true';
@@ -67,7 +21,7 @@ function App() {
   const [prompts, setPrompts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [types, setTypes] = useState([]);
-  const [promptTags, setPromptTags] = useState([]);
+  // promptTags rimossi
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('Tutti');
   const [activeType, setActiveType] = useState('Tutti');
@@ -113,6 +67,24 @@ function App() {
     setLoading(false);
   };
 
+  const normalizeTag = (tag) => {
+    // Rende minuscolo, rimuove spazi, trasforma in singolare semplice (rimuove s finale se presente)
+    if (!tag) return '';
+    let t = tag.trim().toLowerCase();
+    if (t.endsWith('s') && t.length > 3) t = t.slice(0, -1); // semplice singolare
+    return t;
+  };
+
+  const uniqueTags = (tagsArr) => {
+    const seen = new Set();
+    return tagsArr.filter((tag) => {
+      const norm = normalizeTag(tag.name || tag);
+      if (!norm || seen.has(norm)) return false;
+      seen.add(norm);
+      return true;
+    }).map((tag) => ({ ...tag, name: normalizeTag(tag.name || tag) }));
+  };
+
   const fetchMetadata = async () => {
     if (isSupabaseConfigured) {
       const [cats, typs, tags] = await Promise.all([
@@ -123,11 +95,11 @@ function App() {
 
       if (!cats.error) setCategories(cats.data);
       if (!typs.error) setTypes(typs.data);
-      if (!tags.error) setPromptTags(tags.data);
+      // promptTags rimossi
     } else {
       setCategories(MOCK_CATEGORIES);
       setTypes(MOCK_TYPES);
-      setPromptTags([]);
+      // promptTags rimossi
     }
   };
 
@@ -242,27 +214,26 @@ function App() {
   };
 
   // Settings Handlers
-  const handleAddMetadata = async (name) => {
+  const handleAddMetadata = (name) => {
     setSettingsLoading(true);
     const table = settingsType === 'categories' ? 'categories' : settingsType === 'types' ? 'types' : 'prompt_tags';
-
-    if (isSupabaseConfigured) {
-      const { error } = await supabase.from(table).insert([{ name }]);
-      if (!error) {
-        const itemType = settingsType === 'categories' ? 'Categoria' : settingsType === 'types' ? 'Tipologia' : 'Prompt Tag';
-        showToast(`${itemType} aggiunta`);
-        fetchMetadata();
-      } else {
-        showToast('Errore durante l\'aggiunta');
-      }
-    } else {
-      const newItem = { id: crypto.randomUUID(), name };
-      if (settingsType === 'categories') setCategories([...categories, newItem]);
-      else if (settingsType === 'types') setTypes([...types, newItem]);
-      else setPromptTags([...promptTags, newItem]);
-      const itemType = settingsType === 'categories' ? 'Categoria' : settingsType === 'types' ? 'Tipologia' : 'Prompt Tag';
-      showToast(`${itemType} aggiunta (Mock)`);
+    const normalized = normalizeTag(name);
+    if (!normalized) {
+      setSettingsLoading(false);
+      return;
     }
+    // Evita duplicati lato client
+    // promptTags rimossi
+    // showToast('Tag già presente');
+    // setSettingsLoading(false);
+    // return;
+    // Solo mock
+    const newItem = { id: crypto.randomUUID(), name: normalized };
+    if (settingsType === 'categories') setCategories([...categories, newItem]);
+    else if (settingsType === 'types') setTypes([...types, newItem]);
+    // promptTags rimossi
+    const itemType = settingsType === 'categories' ? 'Categoria' : settingsType === 'types' ? 'Tipologia' : '';
+    showToast(`${itemType} aggiunta (Mock)`);
     setSettingsLoading(false);
   };
 
@@ -283,7 +254,7 @@ function App() {
     } else {
       if (settingsType === 'categories') setCategories(categories.filter(c => c.id !== id));
       else if (settingsType === 'types') setTypes(types.filter(t => t.id !== id));
-      else setPromptTags(promptTags.filter(tag => tag.id !== id));
+      // promptTags rimossi
       showToast('Elemento eliminato (Mock)');
     }
     setSettingsLoading(false);
@@ -331,11 +302,16 @@ function App() {
         onLogout={handleLogout}
       />
 
-      <CategoryMenu
-        categories={['Tutti', ...categories.map(c => c.name)]}
-        activeCategory={activeCategory}
-        onSelectCategory={setActiveCategory}
-      />
+      <div className="sticky top-16 z-40 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 pt-2 pb-1">
+          <div className="mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoria</div>
+          <CategoryMenu
+            categories={['Tutti', ...categories.map(c => c.name)]}
+            activeCategory={activeCategory}
+            onSelectCategory={setActiveCategory}
+          />
+        </div>
+      </div>
 
       <main className="max-w-4xl mx-auto">
         <div className="px-4 pt-4 pb-2 flex items-center gap-3">
@@ -379,8 +355,31 @@ function App() {
                     setEditingPrompt(prompt);
                     setIsModalOpen(true);
                   }}
+                  onShowDetail={() => {
+                    setDetailPrompt(prompt);
+                    setIsDetailOpen(true);
+                  }}
+                  onDelete={(id) => handleDeletePrompt(id)}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               ))}
+                  {/* Prompt Detail Modal (solo mobile) */}
+                  <PromptDetail
+                    prompt={detailPrompt}
+                    isOpen={isDetailOpen}
+                    onClose={() => setIsDetailOpen(false)}
+                    onCopy={(title) => showToast(`Prompt "${title}" copiato!`)}
+                    onEdit={(prompt) => {
+                      setEditingPrompt(prompt);
+                      setIsModalOpen(true);
+                      setIsDetailOpen(false);
+                    }}
+                    onDelete={(id) => {
+                      handleDeletePrompt(id);
+                      setIsDetailOpen(false);
+                    }}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
             </div>
           )}
         </div>
@@ -408,14 +407,14 @@ function App() {
         initialData={editingPrompt}
         categories={categories.map(c => c.name)}
         types={types.map(t => t.name)}
-        promptTags={promptTags}
+        // promptTags rimossi
       />
 
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        title={settingsType === 'categories' ? 'Categorie' : settingsType === 'types' ? 'Tipologie' : 'Prompt Tags'}
-        items={settingsType === 'categories' ? categories : settingsType === 'types' ? types : promptTags}
+        title={settingsType === 'categories' ? 'Categorie' : settingsType === 'types' ? 'Tipologie' : ''}
+        items={settingsType === 'categories' ? categories : settingsType === 'types' ? types : []}
         onAddItem={handleAddMetadata}
         onDeleteItem={handleDeleteMetadata}
         isLoading={settingsLoading}

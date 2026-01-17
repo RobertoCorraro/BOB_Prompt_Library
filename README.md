@@ -4,7 +4,6 @@
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
-![Vite](https://img.shields.io/badge/Vite-7.2.4-646CFF?logo=vite)
 ![Supabase](https://img.shields.io/badge/Supabase-2.84.0-3ECF8E?logo=supabase)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-4.1.17-38B2AC?logo=tailwind-css)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -65,7 +64,7 @@
 
 ---
 
-## 🚀 Installazione Rapida
+## 🚀 Installazione e Avvio
 
 ### Prerequisiti
 
@@ -84,11 +83,7 @@ cd bob-prompt-library
 # 2. Installa le dipendenze
 npm install
 
-# 3. Configura le variabili d'ambiente (opzionale)
-cp .env.example .env
-# Modifica .env con le tue credenziali Supabase
-
-# 4. Avvia il server di sviluppo
+# 3. Avvia il server di sviluppo
 npm run dev
 ```
 
@@ -112,7 +107,7 @@ Password: changeme123
 | Tecnologia | Versione | Scopo |
 |------------|----------|-------|
 | **React** | 19.2.0 | UI Framework |
-| **Vite** | 7.2.4 | Build Tool & Dev Server |
+| **Vite** | 5.0.0 | Build Tool & Dev Server |
 | **Supabase** | 2.84.0 | Backend as a Service |
 | **Tailwind CSS** | 4.1.17 | Utility-First CSS |
 | **Lucide React** | 0.554.0 | Icon Library |
@@ -145,7 +140,6 @@ bob-prompt-library/
 ├── schema.sql               # Schema database Supabase
 ├── guida.md                 # Documentazione completa (ITA)
 ├── .env.example             # Template variabili d'ambiente
-├── vite.config.js           # Configurazione Vite
 ├── tailwind.config.js       # Configurazione Tailwind
 ├── postcss.config.js        # Configurazione PostCSS
 ├── eslint.config.js         # Configurazione ESLint
@@ -215,8 +209,8 @@ graph LR
 4. Copia le credenziali API in `.env`
 
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ---
@@ -224,17 +218,17 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ## 🛠️ Scripts Disponibili
 
 ```bash
-# Sviluppo
-npm run dev          # Avvia dev server (http://localhost:5173)
+# Avvio del server di sviluppo
+npm run dev
 
-# Build
-npm run build        # Crea build di produzione in /dist
+# Build per la produzione
+npm run build
 
-# Preview
-npm run preview      # Anteprima build di produzione
+# Preview del build di produzione
+npm run preview
 
 # Linting
-npm run lint         # Esegue ESLint
+npm run lint       # Esegue ESLint
 
 # Pulizia
 rm -rf node_modules package-lock.json && npm install
@@ -243,30 +237,6 @@ rm -rf node_modules package-lock.json && npm install
 ---
 
 ## 📦 Deployment
-
-### Vercel (Consigliato)
-
-```bash
-# 1. Installa Vercel CLI
-npm i -g vercel
-
-# 2. Deploy
-vercel
-
-# 3. Configura variabili d'ambiente su Vercel Dashboard
-# VITE_SUPABASE_URL
-# VITE_SUPABASE_ANON_KEY
-```
-
-### Netlify
-
-```bash
-# 1. Build
-npm run build
-
-# 2. Deploy
-npx netlify-cli deploy --prod --dir=dist
-```
 
 ### Server Linux (Nginx)
 
@@ -291,23 +261,6 @@ server {
     gzip on;
     gzip_types text/css application/javascript application/json;
 }
-```
-
-### Docker
-
-```dockerfile
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ---
@@ -348,11 +301,11 @@ Crea `.env` nella root:
 
 ```env
 # Supabase Configuration
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
 
 # Optional: Analytics
-VITE_GA_TRACKING_ID=UA-XXXXXXXXX-X
+GA_TRACKING_ID=UA-XXXXXXXXX-X
 ```
 
 ---
@@ -361,7 +314,6 @@ VITE_GA_TRACKING_ID=UA-XXXXXXXXX-X
 
 - **[Guida Completa](./guida.md)** - Documentazione dettagliata in italiano
 - **[Schema Database](./schema.sql)** - SQL schema per Supabase
-- **[API Reference](#)** - Documentazione API (coming soon)
 
 ---
 
@@ -443,7 +395,6 @@ Questo progetto è distribuito sotto licenza **MIT**. Vedi il file [LICENSE](./L
 ## 🙏 Ringraziamenti
 
 - [React](https://react.dev/) - UI Framework
-- [Vite](https://vitejs.dev/) - Build Tool
 - [Supabase](https://supabase.com/) - Backend as a Service
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 - [Lucide](https://lucide.dev/) - Icon Library

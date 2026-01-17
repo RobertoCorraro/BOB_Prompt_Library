@@ -1,7 +1,24 @@
+// Funzione di normalizzazione tag (deve essere identica a quella in App.jsx)
+const normalizeTag = (tag) => {
+    if (!tag) return '';
+    let t = tag.trim().toLowerCase();
+    if (t.endsWith('s') && t.length > 3) t = t.slice(0, -1);
+    return t;
+};
+
+const uniqueTags = (tagsArr) => {
+    const seen = new Set();
+    return tagsArr.filter((tag) => {
+        const norm = normalizeTag(tag.name || tag);
+        if (!norm || seen.has(norm)) return false;
+        seen.add(norm);
+        return true;
+    }).map((tag) => (typeof tag === 'string' ? normalizeTag(tag) : { ...tag, name: normalizeTag(tag.name) }));
+};
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, Trash2 } from 'lucide-react';
 
-export default function AdminModal({ isOpen, onClose, onSave, onDelete, initialData, categories, types, promptTags }) {
+export default function AdminModal({ isOpen, onClose, onSave, onDelete, initialData, categories, types }) {
     const [formData, setFormData] = useState({
         title: '',
         content: '',
@@ -28,8 +45,13 @@ export default function AdminModal({ isOpen, onClose, onSave, onDelete, initialD
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(formData);
+        // Normalizza e deduplica i tag prima di salvare
+        let tags = formData.tags || [];
+        tags = uniqueTags(tags).map(t => (t.name || t));
+        onSave({ ...formData, tags });
     };
+    // Gestione tag input (aggiunta manuale, se presente)
+    // Se vuoi aggiungere un campo input per i tag, qui puoi normalizzare e deduplicare
 
     const insertTag = (tagName) => {
         const textarea = textareaRef.current;
@@ -56,7 +78,7 @@ export default function AdminModal({ isOpen, onClose, onSave, onDelete, initialD
 
     return (
         <div
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={onClose}
         >
             <div
@@ -112,20 +134,7 @@ export default function AdminModal({ isOpen, onClose, onSave, onDelete, initialD
                         <label className="block text-sm font-medium text-slate-700 mb-2">Contenuto Prompt</label>
 
                         {/* Tag Insertion Buttons - Now Dynamic */}
-                        {promptTags && promptTags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {promptTags.map(tag => (
-                                    <button
-                                        key={tag.id}
-                                        type="button"
-                                        onClick={() => insertTag(tag.name)}
-                                        className="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
-                                    >
-                                        {tag.name.charAt(0).toUpperCase() + tag.name.slice(1)}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {/* promptTags rimossi */}
 
                         <textarea
                             ref={textareaRef}

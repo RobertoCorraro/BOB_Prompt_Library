@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { BookOpen, Menu, Settings, LogOut } from 'lucide-react';
+import MobileMenu from './MobileMenu';
 
 export default function Header({ onOpenSettings, onLogout }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+    // Mobile detection (basic)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     return (
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
             <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -11,7 +14,7 @@ export default function Header({ onOpenSettings, onLogout }) {
                     <div className="bg-indigo-600 p-2 rounded-lg">
                         <BookOpen className="w-5 h-5 text-white" />
                     </div>
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                    <h1 className="text-xl font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                         BOB Prompt Library
                     </h1>
                 </div>
@@ -19,26 +22,26 @@ export default function Header({ onOpenSettings, onLogout }) {
                 <div className="relative">
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors min-h-11 min-w-11 flex items-center justify-center"
+                        aria-label="Menu"
+                        aria-expanded={isMenuOpen}
                     >
                         <Menu className="w-6 h-6" />
                     </button>
 
+                    {/* Mobile: bottom-sheet, Desktop: dropdown */}
                     {isMenuOpen && (
-                        <>
-                            <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setIsMenuOpen(false)}
-                            />
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        isMobile ? (
+                            <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
+                                <div className="px-4 pt-2 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Gestione</div>
                                 <button
                                     onClick={() => {
                                         onOpenSettings('categories');
                                         setIsMenuOpen(false);
                                     }}
-                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
+                                    className="w-full text-left px-5 py-4 text-lg font-semibold text-slate-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-3 rounded-xl"
                                 >
-                                    <Settings className="w-4 h-4" />
+                                    <Settings className="w-7 h-7 text-indigo-600" />
                                     Gestisci Categorie
                                 </button>
                                 <button
@@ -46,34 +49,74 @@ export default function Header({ onOpenSettings, onLogout }) {
                                         onOpenSettings('types');
                                         setIsMenuOpen(false);
                                     }}
-                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
+                                    className="w-full text-left px-5 py-4 text-lg font-semibold text-slate-800 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-3 rounded-xl"
                                 >
-                                    <Settings className="w-4 h-4" />
+                                    <Settings className="w-7 h-7 text-indigo-600" />
                                     Gestisci Tipologie
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        onOpenSettings('promptTags');
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
-                                >
-                                    <Settings className="w-4 h-4" />
-                                    Gestisci Prompt Tags
-                                </button>
-                                <div className="border-t border-slate-100 my-1" />
+                                <div className="border-t border-slate-200 my-3" />
                                 <button
                                     onClick={() => {
                                         onLogout();
                                         setIsMenuOpen(false);
                                     }}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                    className="w-full text-left px-5 py-4 text-lg font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 rounded-xl"
                                 >
-                                    <LogOut className="w-4 h-4" />
+                                    <LogOut className="w-7 h-7" />
                                     Logout
                                 </button>
-                            </div>
-                        </>
+                            </MobileMenu>
+                        ) : (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-40"
+                                    onClick={() => setIsMenuOpen(false)}
+                                />
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <button
+                                        onClick={() => {
+                                            onOpenSettings('categories');
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        Gestisci Categorie
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            onOpenSettings('types');
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        Gestisci Tipologie
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            // PromptTags rimosso
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2"
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        {/* PromptTags rimosso */}
+                                    </button>
+                                    <div className="border-t border-slate-100 my-1" />
+                                    <button
+                                        onClick={() => {
+                                            onLogout();
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        Logout
+                                    </button>
+                                </div>
+                            </>
+                        )
                     )}
                 </div>
             </div>
